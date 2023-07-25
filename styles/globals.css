@@ -1,0 +1,54 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    font-family: "Century Gothic", sans-serif;
+}
+
+.preloader {
+    position: absolute;
+    z-index: 3;
+    width: 100%;
+    height: 100vh;
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /*transition: opacity 0.3s;*/
+}
+
+.preloader.active {
+
+}
+
+.preloader.finish {
+    display: none;
+}
+
+.progress-bar {
+    height: 30px;
+    background-color: lime;
+    display: flex;
+    position: absolute;
+    top: 0;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 22px;
+    color: white;
+}
+
+.button {
+    color: white;
+    background: transparent;
+    font-weight: 900;
+    font-size: 22px;
+    padding: 20px 50px;
+    border-radius: 10px;
+    border: lime solid 3px;
+
+}
+
+.close{
+    display: none;
+}
