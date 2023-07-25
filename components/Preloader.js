@@ -17,7 +17,7 @@ const Preloader = () => {
     return (
         <div className={`preloader${isLoading ? ' active' : ''} ${close && ' close' }`}>
             <div className="progress-bar" style={{ width: `${progress}%` }}>{progress && progress}%</div>
-            <button className="button" onClick={()=>handleClose()}>Start</button>
+            <button className="button" onClick={()=>handleClose()} disabled={isLoading}>Start</button>
         </div>
     );
 };
