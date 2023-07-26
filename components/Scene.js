@@ -1,142 +1,54 @@
-import React, {useRef, useState, useEffect} from 'react';
-import {Canvas, useThree} from '@react-three/fiber';
-import {OrbitControls, useGLTF} from '@react-three/drei';
-import {Selection, Select, EffectComposer, Outline} from '@react-three/postprocessing';
-
-function Model({url, ...props}) {
-    const {scene} = useGLTF(url);
-    const [hovered, setHovered] = useState(null);
-    const [distance, setDistance] = useState(false);
-    const [cameraMove, setCameraMove] = useState(false);
-
-    const {camera} = useThree();
-
-    useEffect(() => {
-        const checkDistance = () => {
-            if (camera.position.distanceTo({x: props.position[0], y: props.position[1], z: props.position[2]}) < 10) {
-                setDistance(true);
-            } else {
-                setDistance(false);
-            }
-        };
-
-        checkDistance();
-        // Add an event listener to update the distance on camera move
-        const handleCameraMove = () => {
-            checkDistance();
-            setCameraMove(!cameraMove);
-        };
-
-        window.addEventListener('mousemove', handleCameraMove);
-
-        // Clean up the event listener
-        return () => {
-            window.removeEventListener('mousemove', handleCameraMove);
-            setCameraMove(!cameraMove);
-
-        };
-    }, [camera.position, cameraMove]);
-
-    return (
-        <Select enabled={hovered}>
-            <primitive
-                object={scene}
-                {...props}
-                scale={[0.5, 0.5, 0.5]}
-                onPointerOver={() => distance && setHovered(true)}
-                onPointerOut={() => setHovered(false)}
-            />
-        </Select>
-    );
-}
-
+import React, { useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import { Selection, EffectComposer } from '@react-three/postprocessing';
+import Model from './Model';
 
 function Scene() {
+    const [scrollPercentage, setScrollPercentage] = useState(0);
+
+    // Update the scroll percentage on scroll
+    const handleScroll = () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const percentage = (scrollTop / scrollHeight) * 100;
+        setScrollPercentage(percentage);
+    };
+
+    useEffect(() => {
+        // Add the scroll event listener on mount
+        window.addEventListener('scroll', handleScroll);
+
+        // Clean up the event listener on unmount
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    // Calculate the new camera position based on the scroll percentage
+    const cameraPositionX = 17; // Initial camera position X
+    const cameraPositionY = 3; // Initial camera position Y
+    const cameraPositionZ = -2 + scrollPercentage * 0.1; // Adjust the camera position Z based on scrollPercentage
+
     return (
         <Canvas
-            style={{height: '100vh',  background: "radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%)" }}
+            style={{ height: '100vh', background: 'radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%)' }}
             dpr={[1, 2]}
-            camera={{fov: 75, near: 0.1, far: 2000, position: [15, 1, -2]}}
+            camera={{ fov: 75, near: 0.1, far: 2000, position: [cameraPositionX, cameraPositionY, cameraPositionZ] }}
             shadows={true}
         >
-            <OrbitControls/>
-            <ambientLight intensity={0.9}/>
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1}/>
-            <pointLight position={[30, 10, 10]} intensity={1}/>
+            <OrbitControls enableRotate={false} />
+            <ambientLight intensity={0.9} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+            <pointLight position={[30, 10, 10]} intensity={1} />
             <Selection>
-
                 <EffectComposer multisampling={8} autoClear={false}>
-                    <Outline blur visibleEdgeColor="green" edgeStrength={100} width={1000}/>
+                    <Model url="/bust-hi.glb" position={[7, 0, -2]} />
+                    <Model url="/bust-hi2.glb" position={[0, 0, 7]} />
                 </EffectComposer>
-                <Model url="/bust-hi.glb" position={[7, 0, -2]}/>
-                <Model url="/bust-hi2.glb" position={[0, 0, 7]}/>
-
-
             </Selection>
-
         </Canvas>
     );
 }
 
 export default Scene;
-
-
-//
-// import React, {useRef, useState, useEffect, forwardRef} from 'react';
-// import {Canvas, useThree} from '@react-three/fiber';
-// import {OrbitControls, useGLTF} from '@react-three/drei';
-// import {Selection, EffectComposer, Outline} from '@react-three/postprocessing';
-//
-// const Model = forwardRef(({url, ...props}, ref) => {
-//     const {scene} = useGLTF(url);
-//
-//     return (
-//         <group ref={ref}>
-//             <mesh {...props} scale={[0.5, 0.5, 0.5]}>
-//                 <primitive object={scene}/>
-//             </mesh>
-//         </group>
-//     );
-// });
-//
-// function OutlineEffect({modelRef}) {
-//     const {camera} = useThree();
-//     const [showOutline, setShowOutline] = useState(false);
-//
-//     useEffect(() => {
-//         if (camera && modelRef.current) {
-//             const distance = camera.position.distanceTo(modelRef.current.position);
-//             setShowOutline(distance < 10);
-//         }
-//     }, [camera, modelRef]);
-//
-//     return showOutline ? <Outline blur visibleEdgeColor="green" edgeStrength={100} width={1000}/> : null;
-// }
-//
-// function Scene() {
-//     const bust1Ref = useRef();
-//     const bust2Ref = useRef();
-//
-//     return (
-//         <Canvas style={{height: '100vh'}} dpr={[1, 2]} camera={{fov: 75, near: 0.1, far: 2000, position: [15, 1, -2]}}>
-//             <OrbitControls/>
-//             <ambientLight intensity={0.5}/>
-//             <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1}/>
-//             <pointLight position={[10, -10, 10]}/>
-//             <Selection>
-//                 <EffectComposer multisampling={8} autoClear={false}>
-//                     {/* Wrap models and outline effect in a group */}
-//                     <group>
-//                         {/* Use the forwarded ref here */}
-//                         <Model url="/bust-hi.glb" position={[7, 0, -2]} ref={bust1Ref}/>
-//                         <Model url="/bust-hi2.glb" position={[0, 0, 7]} ref={bust2Ref}/>
-//                         <OutlineEffect modelRef={bust1Ref}/>
-//                         <OutlineEffect modelRef={bust2Ref}/>
-//                     </group>
-//                 </EffectComposer>
-//             </Selection>
-//         </Canvas>
-//     );
-// }
-//
-// export default Scene;
